@@ -40,8 +40,10 @@ module Blob =
                     | Position.After x -> AccessCondition.GenerateEmptyCondition()
                     | Position.End -> AccessCondition.GenerateEmptyCondition()
                 fun (event:Event<byte[]>) ->
-                    reference.UploadFromByteArrayAsync(event.Data, 0, event.Data.Length, condition position, null, null)
-                    |> Task.wait
+                    let etag = reference.Properties.ETag
+                    while etag = reference.Properties.ETag do
+                        reference.UploadFromByteArrayAsync(event.Data, 0, event.Data.Length, condition position, null, null)
+                        |> Task.wait
                     reference.Properties.ETag
 
         let readFrom (container:CloudBlobContainer) (blobName:Name) =
